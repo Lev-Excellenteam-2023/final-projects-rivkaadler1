@@ -19,7 +19,7 @@ def chat_process(chat: OpenAIChatAPI, presentation_path: str, chat_role: str) ->
     Returns:
         list: A list of generated responses for each slide.
     """
-    chat.set_system(chat_role)
+    chat.set_system_role(chat_role)
     parsed_content_dict = pptx_parser.parse_content_to_string_dict(presentation_path)
     responses = [chat.generate_response(content) for content in parsed_content_dict.values()]
     return responses
@@ -46,3 +46,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.presentation_path, args.chat_role)
+

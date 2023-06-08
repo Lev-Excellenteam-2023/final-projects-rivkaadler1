@@ -7,18 +7,16 @@ load_dotenv()
 
 class OpenAIChatAPI:
     def __init__(self):
-        self.messages = []
+        self.system_role = ""
         openai.api_key = os.getenv("OPENAI_API_KEY")
 
     def generate_response(self, prompt: str):
-        self.messages.append({"role": "user", "content": prompt})
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=self.messages
+            messages=[{"role": "system", "content": self.system_role}, {"role": "user", "content": prompt}]
         )
         chat_response = completion.choices[0].message.content
-        self.messages.append({"role": "assistant", "content": chat_response})
         return chat_response
 
-    def set_system(self, content: str):
-        self.messages.append({"role": "system", "content": content})
+    def set_system_role(self, role: str):
+        self.system_role = role
