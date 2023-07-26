@@ -1,10 +1,17 @@
+import json
+
 from werkzeug.utils import secure_filename
 from flask import Flask, jsonify, request
 import os
 import uuid
 from datetime import datetime
+from dotenv import load_dotenv
 
+load_dotenv()
 app = Flask(__name__)
+
+UPLOADS_FOLDER = os.environ.get("UPLOADS_FOLDER_PATH")
+OUTPUTS_FOLDER = os.environ.get("OUTPUTS_FOLDER_PATH")
 
 
 # Define the upload endpoint
@@ -69,4 +76,8 @@ def get_file_status(uid):
 
 
 if __name__ == '__main__':
-    app.run()
+    if not os.path.exists(UPLOADS_FOLDER):
+        os.makedirs(UPLOADS_FOLDER)
+    if not os.path.exists(OUTPUTS_FOLDER):
+        os.makedirs(OUTPUTS_FOLDER)
+    app.run(debug=True)
