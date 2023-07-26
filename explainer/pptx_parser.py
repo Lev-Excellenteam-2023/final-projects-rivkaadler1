@@ -1,4 +1,21 @@
+from io import BytesIO
 from pptx import Presentation
+
+
+def parse_from_binary_file_to_pptx(path: str):
+    """
+     Parses a PowerPoint presentation from a binary file and returns the corresponding presentation object.
+
+     Parameters:
+         path (str): The file path of the binary PowerPoint presentation to be parsed.
+
+     Return Value:
+         presentation (Presentation): A presentation object representing the parsed PowerPoint presentation.
+    """
+    with open(path, "rb") as file:
+        pptx_data = file.read()
+    presentation = Presentation(BytesIO(pptx_data))
+    return presentation
 
 
 def parse_content_to_string_dict(presentation: Presentation):

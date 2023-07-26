@@ -6,23 +6,25 @@ from json_utils import save_list_as_json
 from openai_api import OpenAIChatAPI
 import time
 
+from pptx import Presentation
+
 DEFAULT_CHAT_ROLE = "You’re a kind helpful assistant that helps students understand the lecture's presentation"
 
+UPLOADS_FOLDER = os.environ.get("UPLOADS_FOLDER_PATH")
+OUTPUTS_FOLDER = os.environ.get("OUTPUTS_FOLDER_PATH")
 
-async def chat_process(chat: OpenAIChatAPI, presentation_path: str, chat_role: str) -> list:
+
+async def chat_process(chat: OpenAIChatAPI, presentation: Presentation) -> list:
     """
     Process the chat for each slide in the presentation.
 
     Args:
         chat (OpenAIChatAPI): An instance of the OpenAIChatAPI class.
-        presentation_path (str): Path to the presentation file.
-        chat_role (str): Role of the chat.
-
+        presentation(Presentation): Presentation file.
     Returns:
         list: A list of generated responses for each slide.
     """
-    chat.set_system_role(chat_role)
-    parsed_content_dict = pptx_parser.parse_content_to_string_dict(presentation_path)
+    parsed_content_dict = pptx_parser.parse_content_to_string_dict(presentation)
     presentation_subject = next(iter(parsed_content_dict.values()))
     responses = await asyncio.gather(
         *[
@@ -43,26 +45,22 @@ def main(chat_role: str = DEFAULT_CHAT_ROLE) -> None:
         chat_role (str, optional): Role of the chat. Defaults to DEFAULT_CHAT_ROLE.
     """
     chat = OpenAIChatAPI()
-
+    chat.set_system_role(chat_role)
     while True:
         # Check for files in the uploads directory
-        files = os.listdir('data/uploads')
+        files = os.listdir(UPLOADS_FOLDER)
 
         for filename in files:
-            # Process only .pptx files
-            if filename.endswith('.pptx'):
-                presentation_path = os.path.join('data/uploads', filename)
-                print(f"Processing file: {presentation_path}")
+            presentation_path = os.path.join(UPLOADS_FOLDER, filename)
+            print(f"Processing file: {presentation_path}")
+            presentation = pptx_parser.parse_from_binary_file_to_pptx(presentation_path)
+            chat_ans_lst = asyncio.run(chat_process(chat, presentation))
+            output_file_path = OUTPUTS_FOLDER + '\\' + filename
+            save_list_as_json(chat_ans_lst, output_file_path)
+            print(f"Saved output JSON: {output_file_path}")
 
-                chat_ans_lst = asyncio.run(chat_process(chat, presentation_path, chat_role))
-
-                output_filename = os.path.splitext(filename)[0]
-                output_file_path = f'data/outputs/{output_filename}.json'
-                save_list_as_json(chat_ans_lst, output_file_path)
-                print(f"Saved output JSON: {output_file_path}")
-
-                # Remove the processed file
-                os.remove(os.path.join('data/uploads', filename))
+            # Remove the processed file
+            os.remove(os.path.join(UPLOADS_FOLDER, filename))
 
         print("Waiting for new files...")
         # Add a delay between iterations
@@ -74,4 +72,3 @@ if __name__ == '__main__':
     parser.add_argument("chat_role", nargs="?", default=DEFAULT_CHAT_ROLE, help="Role of the chat (optional)")
     args = parser.parse_args()
     main(args.chat_role)
-
