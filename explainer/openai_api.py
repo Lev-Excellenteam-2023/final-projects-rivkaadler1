@@ -11,7 +11,7 @@ class OpenAIChatAPI:
         openai.api_key = os.getenv("OPENAI_API_KEY")
 
     async def generate_response(self, prompt: str):
-        completion = openai.ChatCompletion.create(
+        completion = await openai.ChatCompletion.acreate(
             model="gpt-3.5-turbo",
             messages=[{"role": "system", "content": self.system_role}, {"role": "user", "content": prompt}]
         )
