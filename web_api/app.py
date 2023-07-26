@@ -14,30 +14,49 @@ UPLOADS_FOLDER = os.environ.get("UPLOADS_FOLDER_PATH")
 OUTPUTS_FOLDER = os.environ.get("OUTPUTS_FOLDER_PATH")
 
 
-# Define the upload endpoint
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded.'}), 400
+    """
+    Handles file uploads via a POST request.
 
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'Empty filename.'}), 400
+    Request:
+        Method: POST
+        Body: The request body should contain the file to be uploaded using the 'file' key.
 
-    # Generate a unique identifier for the file
-    uid = str(uuid.uuid4())
+    Response:
+        Success (HTTP Status 200):
+            Content: JSON object containing the generated UID for the uploaded file.
+            Example: {"uid": "54f5ef71-5697-4f2f-9024-47875e42e9f1"}
 
-    # Get the original filename
-    original_filename = secure_filename(file.filename)
+        Error (HTTP Status 400):
+            Content: JSON object containing the error message.
+            Example: {"error": "No file uploaded."}
+    """
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file uploaded.'}), 400
 
-    # Generate the new filename with timestamp, UID, and extension
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    new_filename = f"{timestamp}_{uid}_{original_filename}"
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'Empty filename.'}), 400
 
-    # Save the file to the uploads directory
-    file.save(os.path.join('data/uploads', new_filename))
+        # Generate a unique identifier for the file
+        uid = str(uuid.uuid4())
 
-    return jsonify({'uid': uid}), 200
+        # Get the original filename
+        original_filename = secure_filename(file.filename.split('.')[0])
+
+        # Generate the new filename with timestamp, UID, and extension
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        new_filename = f"{uid}_{original_filename}_{timestamp}"
+
+        # Save the binary file to the uploads directory
+        file.save(os.path.join(UPLOADS_FOLDER, new_filename))
+
+        return jsonify({'uid': uid}), 200
+
+    except Exception as e:
+        return f'Error in upload endpoint: {str(e)}', 400
 
 
 # Define the status endpoint
