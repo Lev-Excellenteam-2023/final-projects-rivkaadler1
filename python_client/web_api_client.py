@@ -10,10 +10,10 @@ class Status:
     Represents the status of a file processing task.
 
     Attributes:
-        status (str): The current status of the processing task.
+        status (str): The current status of the processing file.
         filename (str): The name of the file being processed.
         timestamp (datetime): The timestamp when the processing started.
-        explanation (str): Additional information or explanation about the status.
+        explanation (str): The presentation's explanation from chat gpt.
     """
     status: str
     filename: str
