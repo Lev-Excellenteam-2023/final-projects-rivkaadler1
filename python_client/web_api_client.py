@@ -1,7 +1,12 @@
+import argparse
+
 import requests
 from datetime import datetime
 from dataclasses import dataclass
 import time
+
+# Put here your default path to the .pptx file
+DEFAULT_FILE_PATH = "C:\\Users\\User\\Desktop\\excellenteam\\excellenteam_python\\t.pptx"
 
 
 @dataclass
@@ -32,6 +37,7 @@ class WebAppClient:
     Attributes:
         base_url (str): The base URL of the web application's API.
     """
+
     def __init__(self, base_url):
         self.base_url = base_url
 
@@ -84,21 +90,25 @@ class WebAppClient:
             raise Exception(f"Error getting status: {response.text}")
 
 
-def main():
+def main(file_path: str = DEFAULT_FILE_PATH,
+         sleep_time: float = 20):
     """
-     Main function to interact with the web application and check the processing status of a file.
-     """
+    Main function to interact with the web application and check the processing status of a file.
+
+    Args:
+        file_path (str, optional): The local file path to be uploaded. Defaults to "C:\\Users\\User\\Desktop\\excellenteam\\excellenteam_python\\t.pptx".
+        sleep_time (float, optional): The time to sleep till checking for status (in seconds). Defaults to 20 seconds.
+    """
     base_url = 'http://localhost:5000'
     client = WebAppClient(base_url)
-    # Get user inputs for file path and time to sleep
-    file_path = input("Enter the file path: ")
-    sleep_time = float(input("Enter the time to sleep till checking for status (in seconds): "))
+
+    # Upload the file
     uid = client.upload(file_path)
     print(f"File uploaded. UID: {uid}")
 
     # Check status
     try:
-        time.sleep(sleep_time)  # You can change the time sleep to get another answer
+        time.sleep(sleep_time)
         status = client.status(uid)
         if status.is_done():
             print("File processing is done.")
@@ -114,4 +124,12 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--file_path", type=str,
+                        default=DEFAULT_FILE_PATH,
+                        help="The file path to be uploaded (optional)")
+    parser.add_argument("--sleep_time", type=float, default=20,
+                        help="The time to sleep till checking for status (in seconds)")
+    args = parser.parse_args()
+
+    main(args.file_path, args.sleep_time)
